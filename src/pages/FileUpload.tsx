@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { Box, Typography, Button, Alert, Checkbox, FormControlLabel } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Button,
+  Alert,
+  Checkbox,
+  FormControlLabel,
+  TextField,
+} from "@mui/material";
 import excelIcon from "../assets/excel-icon.png";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { read, utils } from "xlsx";
@@ -12,21 +20,31 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload }) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [shuffle, setShuffle] = useState(false);
-
+  const [rangeStart, setRangeStart] = useState<number | string>("");
+  const [rangeEnd, setRangeEnd] = useState<number | string>("");
+  const [flashcards, setFlashcards] = useState<
+    { front: string; back: string }[] | null
+  >(null);
+  const [limit, setLimit] = useState<number | string>("");
+  const [fileName, setFileName] = useState<string | null>(null); // New state for file name
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
   const ALLOWED_EXTENSIONS = [".xls", ".xlsx"];
 
   const handleFileValidation = (file: File) => {
-    setErrorMessage(null); 
+    setErrorMessage(null);
 
     if (file.size > MAX_FILE_SIZE) {
       setErrorMessage("File size exceeds the maximum limit of 10MB.");
       return false;
     }
 
-    const fileExtension = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
+    const fileExtension = file.name
+      .substring(file.name.lastIndexOf("."))
+      .toLowerCase();
     if (!ALLOWED_EXTENSIONS.includes(fileExtension)) {
-      setErrorMessage("Unsupported file type. Please upload an XLS or XLSX file.");
+      setErrorMessage(
+        "Unsupported file type. Please upload an XLS or XLSX file."
+      );
       return false;
     }
 
@@ -36,6 +54,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload }) => {
   const handleFileUpload = (file: File) => {
     if (!handleFileValidation(file)) return;
 
+    setFileName(file.name);
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -43,18 +62,21 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload }) => {
         const workbook = read(data, { type: "array" });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-        let rows = utils.sheet_to_json<{ front: string; back: string }>(sheet);
+        const rows = utils.sheet_to_json<{ front: string; back: string }>(
+          sheet
+        );
 
         if (rows.length && rows[0].front && rows[0].back) {
-          if (shuffle) {
-            rows = shuffleArray(rows);
-          }
-          onUpload(rows);
+          setFlashcards(rows); // Pass sliced rows for review
         } else {
-          setErrorMessage("Invalid file format. Ensure 'front' and 'back' columns exist.");
+          setErrorMessage(
+            "Invalid file format. Ensure 'front' and 'back' columns exist."
+          );
         }
       } catch {
-        setErrorMessage("An error occurred while reading the file. Please try again.");
+        setErrorMessage(
+          "An error occurred while reading the file. Please try again."
+        );
       }
     };
     reader.readAsArrayBuffer(file);
@@ -108,8 +130,6 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload }) => {
     >
       {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-
-
       <Box
         sx={{
           width: "100%",
@@ -129,25 +149,94 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload }) => {
         onDrop={handleDrop}
       >
         <UploadFileIcon fontSize="large" color="primary" />
-        <Typography variant="body1" sx={{ fontWeight: "bold", marginY: 1 }}>
-          Drag and Drop file here or{" "}
-          <Button variant="text" component="label">
-            Choose file
-            <input
-              type="file"
-              hidden
-              accept=".xls,.xlsx"
-              onChange={handleFileInputChange}
-            />
-          </Button>
-        </Typography>
+        {!fileName ? (
+          <Typography variant="body1" sx={{ fontWeight: "bold", marginY: 1 }}>
+            Drag and Drop file here or{" "}
+            <Button variant="text" component="label">
+              Choose file
+              <input
+                type="file"
+                hidden
+                accept=".xls,.xlsx"
+                onChange={handleFileInputChange}
+              />
+            </Button>
+          </Typography>
+        ) : (
+          <Typography variant="body1" sx={{ fontWeight: "bold", marginY: 1 }}>
+            Selected File: {fileName}{" "}
+            <label
+              htmlFor="change-file-input"
+              style={{
+                color: "#1976d2",
+                textDecoration: "underline",
+                cursor: "pointer",
+              }}
+            >
+              (Change File)
+              <input
+                id="change-file-input"
+                type="file"
+                hidden
+                accept=".xls,.xlsx"
+                onChange={handleFileInputChange}
+              />
+            </label>
+          </Typography>
+        )}
       </Box>
-      {/* Shuffle Option */}
-      <FormControlLabel
-        control={<Checkbox checked={shuffle} onChange={(e) => setShuffle(e.target.checked)} />}
-        label="Shuffle flashcards"
-      />
-      {/* File Format and Size Info */}
+
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          width: "100%",
+          justifyContent: "center",
+        }}
+      >
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={shuffle}
+              onChange={(e) => setShuffle(e.target.checked)}
+            />
+          }
+          label="Shuffle flashcards"
+        />
+        <TextField
+          label="Start"
+          type="number"
+          value={rangeStart}
+          onChange={(e) => {
+            const value = Math.max(1, Number(e.target.value));
+            setRangeStart(value);
+          }}
+          size="small"
+          InputProps={{
+            inputProps: { min: 1 },
+          }}
+        />
+        <TextField
+          label="End"
+          type="number"
+          value={rangeEnd}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            setRangeEnd(value);
+          }}
+          placeholder="End of Records"
+          size="small"
+        />
+        <TextField
+          label="Limit"
+          type="number"
+          value={limit}
+          onChange={(e) => setLimit(Math.max(1, Number(e.target.value)))}
+          placeholder="Max Cards"
+          size="small"
+        />
+      </Box>
+
       <Typography
         variant="body2"
         sx={{
@@ -158,6 +247,41 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload }) => {
         Supported formats: <strong>XLS, XLSX</strong> | Maximum size:{" "}
         <strong>10MB</strong>
       </Typography>
+
+      {/* Start Review Button */}
+      {flashcards && (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => {
+            const start = Math.max(1, Number(rangeStart)) || 1;
+            const end = Math.min(
+              Number(rangeEnd) || flashcards.length,
+              flashcards.length
+            );
+
+            if (start > end || start < 1 || end > flashcards.length) {
+              setErrorMessage(
+                `Invalid range. Please enter a range between 1 and ${flashcards.length}.`
+              );
+              return;
+            }
+
+            let slicedFlashcards = flashcards.slice(start - 1, end);
+            if (shuffle) {
+              slicedFlashcards = shuffleArray(slicedFlashcards);
+            }
+            const limitValue = Number(limit);
+            if (limitValue && limitValue > 0) {
+              slicedFlashcards = slicedFlashcards.slice(0, limitValue);
+            }
+            onUpload(slicedFlashcards);
+          }}
+          sx={{ marginTop: 2 }}
+        >
+          Start Review
+        </Button>
+      )}
 
       <Box
         sx={{

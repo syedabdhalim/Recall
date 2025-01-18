@@ -36,6 +36,11 @@ const App: React.FC = () => {
             backgroundColor: "#1976d2",
             color: "#fff",
             textAlign: "center",
+            cursor: "pointer",
+          }}
+          onClick={() => {
+            setFlashcards(null);
+
           }}
         >
           <Typography variant="h5" sx={{ fontWeight: "bold" }}>
@@ -117,8 +122,8 @@ const App: React.FC = () => {
             <a
               href="mailto:syedabdhalim7@gmail.com"
               style={{
-                color: "#fff", 
-                textDecoration: "underline", 
+                color: "#fff",
+                textDecoration: "underline",
               }}
             >
               syedabdhalim7@gmail.com
