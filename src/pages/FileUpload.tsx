@@ -192,6 +192,12 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload }) => {
           gap: 2,
           width: "100%",
           justifyContent: "center",
+          alignItems: "center",
+          flexWrap: "wrap", // Allow wrapping for smaller screens
+          "@media (max-width: 600px)": {
+            flexDirection: "column",
+            alignItems: "flex-start",
+          },
         }}
       >
         <FormControlLabel
@@ -202,6 +208,11 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload }) => {
             />
           }
           label="Shuffle flashcards"
+          sx={{
+            "@media (max-width: 600px)": {
+              alignSelf: "center",
+            },
+          }}
         />
         <TextField
           label="Start"
@@ -215,6 +226,12 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload }) => {
           InputProps={{
             inputProps: { min: 1 },
           }}
+          sx={{
+            width: "80px",
+            "@media (max-width: 600px)": {
+              width: "100%",
+            },
+          }}
         />
         <TextField
           label="End"
@@ -226,14 +243,31 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload }) => {
           }}
           placeholder="End of Records"
           size="small"
+          sx={{
+            width: "80px",
+            "@media (max-width: 600px)": {
+              width: "100%",
+            },
+          }}
         />
         <TextField
           label="Limit"
           type="number"
           value={limit}
-          onChange={(e) => setLimit(Math.max(1, Number(e.target.value)))}
-          placeholder="Max Cards"
+          onChange={(e) => {
+            const value = Math.max(1, Number(e.target.value));
+            setLimit(value);
+          }}
           size="small"
+          InputProps={{
+            inputProps: { min: 1 },
+          }}
+          sx={{
+            width: "80px",
+            "@media (max-width: 600px)": {
+              width: "100%",
+            },
+          }}
         />
       </Box>
 
@@ -248,7 +282,6 @@ const FileUpload: React.FC<FileUploadProps> = ({ onUpload }) => {
         <strong>10MB</strong>
       </Typography>
 
-      {/* Start Review Button */}
       {flashcards && (
         <Button
           variant="contained"
