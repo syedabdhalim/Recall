@@ -110,26 +110,26 @@ const App: React.FC = () => {
         </Container>
 
         <Box
-          sx={{
-            padding: "8px 16px",
-            backgroundColor: "#1976d2",
-            color: "#fff",
-            textAlign: "center",
-          }}
-        >
-          <Typography variant="body2">
-            Any inquiry/feedback please send email to{" "}
-            <a
-              href="mailto:syedabdhalim7@gmail.com"
-              style={{
-                color: "#fff",
-                textDecoration: "underline",
-              }}
-            >
-              syedabdhalim7@gmail.com
-            </a>
-          </Typography>
-        </Box>
+  sx={{
+    padding: "8px 16px",
+    backgroundColor: "#1976d2",
+    color: "#fff",
+    textAlign: "center",
+  }}
+>
+  <Typography variant="body2">
+    Source code:{" "}
+    <a
+      href="https://github.com/syedabdhalim/Recall"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ color: "#fff", textDecoration: "underline" }}
+    >
+      GitHub
+    </a>
+  </Typography>
+</Box>
+
       </Box>
     </>
   );
